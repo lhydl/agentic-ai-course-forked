@@ -20,7 +20,7 @@ def human_node(state: State) -> dict:
     }
 
 
-def check_exit_condition(state: State) -> Literal["summarizer", "orchestrator"]:
+def check_exit_condition(state: State) -> Literal["end", "orchestrator"]:
     """
     Check if user typed 'exit' to end conversation.
     """
@@ -30,28 +30,29 @@ def check_exit_condition(state: State) -> Literal["summarizer", "orchestrator"]:
         content = last_message.get("content", "")
 
         if "exit" in content.lower():
-            return "summarizer"
+            return "end"
 
     return "orchestrator"
 
 
-def orchestrator_routing(state: State) -> Literal["participant", "human"]:
+def orchestrator_routing(state: State) -> Literal["participant", "summarizer"]:
     """
-    Route from orchestrator based on volley count.
+    Route from orchestrator based on volley count. When the round is over,
+    the summarizer writes a recommendation before it is the human's turn again.
     """
     volley_left = state.get("volley_msg_left", 0)
 
     if volley_left > 0:
         return "participant"
     else:
-        return "human"
+        return "summarizer"
 
 
 def participant_node(state: State) -> dict:
     """
     Participant node - calls the appropriate participant and handles output.
     """
-    next_speaker = state.get("next_speaker", "ah_seng")  # Default fallback
+    next_speaker = state.get("next_speaker", "huimin")  # Default fallback
 
     # Call participant with the selected speaker
     result = participant(next_speaker, state)
@@ -67,13 +68,10 @@ def participant_node(state: State) -> dict:
 
 def summarizer_node(state: State) -> dict:
     """
-    Summarizer node - generates and displays conversation summary.
+    Summarizer node - writes a recommendation at the end of each round.
     """
-    print("\n=== CONVERSATION ENDING ===\n")
-
     # Generate and print summary
     summary = summarizer(state)
-    print(summary)
-    print("\nThank you! Come back to kopitiam anytime lah!")
+    print(f"\n{summary}")
 
-    return {}  # Empty update to end
+    return {}  # Printed only, not added to the conversation

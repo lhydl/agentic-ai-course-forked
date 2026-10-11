@@ -36,7 +36,7 @@ def build_graph():
         "human",
         check_exit_condition,
         {
-            "summarizer": "summarizer",
+            "end": END,
             "orchestrator": "orchestrator"
         }
     )
@@ -46,24 +46,24 @@ def build_graph():
         orchestrator_routing,
         {
             "participant": "participant",
-            "human": "human"
+            "summarizer": "summarizer"
         }
     )
 
     builder.add_edge("participant", "orchestrator")
 
-    builder.add_edge("summarizer", END)
+    builder.add_edge("summarizer", "human")
 
     return builder.compile()
 
 
 def main():
-    print("=== SINGAPORE KOPITIAM CHATTER ===")
-    print("Chat with our kopitiam regulars! Type 'exit' to end.\n")
-    print("Setting: A bustling Singapore kopitiam on a typical afternoon...")
-    print("The regulars are here - Uncle Ah Seng at his drinks stall,")
-    print("Mei Qi with her phone, Bala checking football scores,")
-    print("and Dr. Tan sipping his kopi-o.\n")
+    print("=== SINGAPORE OUTING PLANNER ===")
+    print("Tell the team what you'd like to do. After each round the team gives you a")
+    print("recommendation, and you can reply. Type 'exit' to finish.\n")
+    print("The team checks live data: Hui Min (weather), Dr. Farah (haze)")
+    print("and Ravi (public transport). The Trip Planner decides who speaks next.\n")
+    print("Try: 'We want to go to Gardens by the Bay now, from Tampines Mall.'\n")
 
     graph = build_graph()
 
@@ -76,7 +76,10 @@ def main():
     )
 
     try:
-        graph.invoke(initial_state)
+        # LangGraph stops after 25 steps by default, and each message to the team
+        # uses about 13, so the third message would crash. 500 is plenty.
+        graph.invoke(initial_state, {"recursion_limit": 500})
+        print("\nEnjoy your day out!")
     except KeyboardInterrupt:
         print("\n\nConversation interrupted. Goodbye!")
     except Exception as e:

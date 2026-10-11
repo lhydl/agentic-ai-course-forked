@@ -4,7 +4,7 @@ from langchain.schema import HumanMessage, SystemMessage
 
 def summarizer(state) -> str:
     """
-    Generate summary report using LLM when conversation ends.
+    Generate a recommendation using LLM at the end of each round.
 
     Args:
         state: Current conversation state with messages
@@ -27,22 +27,17 @@ def summarizer(state) -> str:
         return "No conversation content to summarize."
 
     # System prompt for summarization
-    system_prompt = """You are a keen observer at a Singapore kopitiam who has been listening to the conversation.
+    system_prompt = """You are writing a recommendation for the human after a planning conversation about a day out in Singapore.
 
-Generate a concise summary of the conversation that captures:
-1. Key topics discussed
-2. The dynamics between participants
-3. Any memorable quotes or highlights
-4. The overall mood and flow of the conversation
+Start with your recommendation: whether to go, and when. Then give the weather and haze
+readings the team found, how to get there, and a backup if it rains. Only use facts from
+the conversation so far. If something was not checked, write "not checked". Keep it short."""
 
-Format your summary in a clear, engaging way that captures the essence of kopitiam banter.
-Keep it concise but insightful."""
-
-    user_prompt = f"""Here's the conversation that took place:
+    user_prompt = f"""Here's the planning conversation:
 
 {conversation_text}
 
-Please provide a summary of this kopitiam conversation."""
+Please write the recommendation."""
 
     try:
         # Call LLM
@@ -60,13 +55,13 @@ Please provide a summary of this kopitiam conversation."""
             summary = str(response.content).strip()
 
         # Format with header
-        return f"=== KOPITIAM CONVERSATION SUMMARY ===\n\n{summary}"
+        return f"=== RECOMMENDATION ===\n\n{summary}"
 
     except Exception as e:
         # Fallback to basic summary if LLM fails
-        return f"""=== KOPITIAM CONVERSATION SUMMARY ===
+        return f"""=== RECOMMENDATION ===
 
 Total messages: {len(messages)}
 
-Unable to generate detailed summary at this time.
-The conversation has been logged for review."""
+Unable to write the recommendation at this time.
+Scroll up to see the conversation."""
